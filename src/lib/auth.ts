@@ -7,7 +7,13 @@ export const auth = betterAuth({
         provider: "pg",
     }),
     emailAndPassword: {
-        enabled: true
+        enabled: true,
+        requireEmailVerification: true,
+    },
+    emailVerification: {
+        sendVerificationEmail: async ({ user, url, token }, request) => {
+
+        }
     },
     user: {
         additionalFields: {
@@ -15,7 +21,7 @@ export const auth = betterAuth({
                 type: "string",
                 required: false,
                 defaultValue: "user",
-                input: false // Protect this so users can't sign up as 'admin'
+                input: false
             }
         }
     },
