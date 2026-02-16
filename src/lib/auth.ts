@@ -1,6 +1,8 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "../db";
+import { sendVerificationEmail } from "./email/send-verification-email";
+
 
 export const auth = betterAuth({
     database: drizzleAdapter(db, {
@@ -11,8 +13,13 @@ export const auth = betterAuth({
         requireEmailVerification: true,
     },
     emailVerification: {
+        sendOnSignUp: true,
+        autoSignInAfterVerification: true,
         sendVerificationEmail: async ({ user, url, token }, request) => {
-
+            await sendVerificationEmail({
+                to: user.email,
+                url: url
+            });
         }
     },
     user: {
@@ -27,3 +34,6 @@ export const auth = betterAuth({
     },
     baseURL: process.env.BETTER_AUTH_BASE_URL,
 });
+
+
+type Session = typeof auth.$Infer.Session
