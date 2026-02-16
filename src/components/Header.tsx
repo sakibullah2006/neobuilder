@@ -10,7 +10,7 @@ export function Header() {
     const { data: session } = authClient.useSession();
 
     return (
-        <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <header className="fixed top-0 z-50 w-full border-b border-transparent bg-transparent/80 backdrop-blur-sm transition-all duration-300 supports-[backdrop-filter]:bg-transparent/60">
             <div className="container flex h-14 max-w-screen-2xl items-center justify-between px-4">
                 <div className="flex items-center gap-2">
                     <Link href="/" className="flex items-center space-x-2">

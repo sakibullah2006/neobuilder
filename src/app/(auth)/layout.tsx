@@ -15,7 +15,7 @@ export default async function AuthLayout({ children }: AuthLayoutProps) {
     if (session) redirect('/dashboard');
 
     return (
-        <section>
+        <section className="bg-dot-pattern pt-10 min-h-screen">
             {children}
         </section>
     );
