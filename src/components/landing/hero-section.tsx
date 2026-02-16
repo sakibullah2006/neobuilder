@@ -19,7 +19,7 @@ export function HeroSection() {
                 >
                     <ShimmerText
                         text="NeoBuilder v1.0"
-                        className="text-sm font-medium tracking-widest uppercase bg-clip-text text-transparent bg-linear-to-r from-primary via-primary/50 to-primary"
+                        className="select-none text-sm font-medium tracking-widest uppercase bg-clip-text text-transparent bg-linear-to-r from-primary via-primary/50 to-primary"
                     />
                 </motion.div>
 
@@ -27,12 +27,12 @@ export function HeroSection() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, delay: 0.2 }}
-                    className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-linear-to-b from-neutral-900 via-neutral-700 to-neutral-900 dark:from-white dark:via-neutral-200 dark:to-neutral-500 pb-2 text-center"
+                    className="select-none text-5xl md:text-6xl lg:text-7xl font-bold tracking-tighter bg-clip-text text-transparent bg-linear-to-b from-neutral-900 via-neutral-700 to-neutral-900 dark:from-white dark:via-neutral-200 dark:to-neutral-500 pb-2 text-center"
                 >
                     The Lead-First <br className="hidden md:block" /> Chatbot Builder
                 </motion.h1>
 
-                <div className="w-full max-w-3xl relative z-20">
+                <div className="w-full select-none max-w-3xl relative z-20">
                     <TypewriterTitle
                         sequences={[
                             { text: "Automate Customer Support 24/7", deleteAfter: true },
