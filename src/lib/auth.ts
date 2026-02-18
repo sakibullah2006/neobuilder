@@ -2,7 +2,9 @@ import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { admin, organization } from "better-auth/plugins";
 import { db } from "../db";
+import { ac, admin as adminRole, member, owner } from "./auth-permissions";
 import { sendVerificationEmail } from "./email/send-verification-email";
+import { sendInvitationEmail } from "./email/send-invitation-email";
 
 
 export const auth = betterAuth({
@@ -35,7 +37,24 @@ export const auth = betterAuth({
     },
     baseURL: process.env.BETTER_AUTH_BASE_URL,
     plugins: [
-        organization(),
+        organization({
+            ac: ac,
+            roles: {
+                owner,
+                admin: adminRole,
+                member,
+            },
+            async sendInvitationEmail(data) {
+                const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/accept-invitation/${data.id}`;
+                await sendInvitationEmail({
+                    email: data.email,
+                    invitedByUsername: data.inviter.user.name,
+                    invitedByEmail: data.inviter.user.email,
+                    teamName: data.organization.name,
+                    inviteLink,
+                });
+            },
+        }),
         admin(),
     ],
 });
