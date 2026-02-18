@@ -1,5 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { admin, organization } from "better-auth/plugins";
 import { db } from "../db";
 import { sendVerificationEmail } from "./email/send-verification-email";
 
@@ -33,6 +34,10 @@ export const auth = betterAuth({
         }
     },
     baseURL: process.env.BETTER_AUTH_BASE_URL,
+    plugins: [
+        organization(),
+        admin(),
+    ],
 });
 
 
