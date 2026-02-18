@@ -3,24 +3,15 @@
 
 import * as React from "react"
 import {
-    AudioWaveform,
-    BookOpen,
-    Bot,
-    Command,
-    Frame,
-    GalleryVerticalEnd,
-    Map,
-    PieChart,
-    Settings2,
-    SquareTerminal,
+    LayoutDashboard,
     MessageSquare,
-    History,
-    Wifi,
+    Settings2,
     Users,
 } from "lucide-react"
 
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
+import { TeamSwitcher } from "./team-switcher"
 import {
     Sidebar,
     SidebarContent,
@@ -34,10 +25,15 @@ import { authClient } from "@/lib/auth-client"
 const data = {
     navMain: [
         {
+            title: "Dashboard",
+            url: "/dashboard",
+            icon: LayoutDashboard,
+            isActive: true,
+        },
+        {
             title: "Settings",
             url: "#",
             icon: Settings2,
-            isActive: true,
             items: [
                 {
                     title: "Knowledge Base",
@@ -93,7 +89,7 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     const { data: session } = authClient.useSession()
 
-    // Fallback user if session is not loaded yet or unavailable (though layout checks for session)
+    // Fallback user if session is not loaded yet or unavailable
     const user = {
         name: session?.user.name || "User",
         email: session?.user.email || "user@example.com",
@@ -103,6 +99,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
         <Sidebar collapsible="icon" {...props}>
             <SidebarHeader>
+                <TeamSwitcher />
             </SidebarHeader>
             <SidebarContent>
                 <NavMain items={data.navMain} />

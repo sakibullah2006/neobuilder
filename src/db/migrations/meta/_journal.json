@@ -29,6 +29,13 @@
       "when": 1771321083398,
       "tag": "0003_fluffy_vulture",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771448188483,
+      "tag": "0004_pale_loki",
+      "breakpoints": true
     }
   ]
 }
