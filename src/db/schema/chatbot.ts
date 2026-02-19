@@ -48,6 +48,7 @@ export const knowledgeSources = pgTable("knowledge_sources", {
 
     characterCount: text("character_count"), // Useful for usage limits
     createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // --- 3. BOT KNOWLEDGE (The Brain / Vectors) ---

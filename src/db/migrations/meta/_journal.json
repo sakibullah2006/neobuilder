@@ -36,6 +36,13 @@
       "when": 1771448188483,
       "tag": "0004_pale_loki",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1771500981012,
+      "tag": "0005_true_wild_child",
+      "breakpoints": true
     }
   ]
 }
