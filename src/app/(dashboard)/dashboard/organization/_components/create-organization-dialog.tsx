@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { uploadOrgAvatarAction } from "@/app/(dashboard)/dashboard/_actions/upload-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -49,20 +50,38 @@ export function CreateOrganizationDialog() {
             return;
         }
         setLoading(true);
-        const { error } = await authClient.organization.create({
-            name,
-            slug,
-            logo: logo ?? undefined,
-        });
-        setLoading(false);
-        if (error) {
-            toast.error(error.message || "Failed to create organization");
-        } else {
+        try {
+            // Step 1: create org (no logo yet — we need the org ID first)
+            const { data: newOrg, error } = await authClient.organization.create({
+                name,
+                slug,
+            });
+            if (error || !newOrg) {
+                toast.error(error?.message || "Failed to create organization");
+                return;
+            }
+
+            // Step 2: if a logo was picked, upload it and update the org
+            if (logo) {
+                const blob = await fetch(logo).then((r) => r.blob());
+                const fd = new FormData();
+                fd.append("file", blob, "logo.webp");
+                const { publicUrl } = await uploadOrgAvatarAction(newOrg.id, fd);
+                await authClient.organization.update({
+                    organizationId: newOrg.id,
+                    data: { logo: publicUrl },
+                });
+            }
+
             toast.success("Organization created");
             setOpen(false);
             setName("");
             setSlug("");
             setLogo(null);
+        } catch {
+            toast.error("Failed to upload logo");
+        } finally {
+            setLoading(false);
         }
     };
 

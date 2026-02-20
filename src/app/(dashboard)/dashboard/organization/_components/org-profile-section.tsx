@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { uploadOrgAvatarAction } from "@/app/(dashboard)/dashboard/_actions/upload-avatar";
 import {
     Card,
     CardContent,
@@ -60,23 +61,35 @@ export function OrgProfileSection({
 
     const handleUpdate = async () => {
         setLoading(true);
-        const { error } = await authClient.organization.update({
-            data: {
-                name,
-                slug,
-                logo: pendingLogo ?? logoPreview ?? undefined,
-            },
-            organizationId: org.id,
-        });
-        setLoading(false);
-        if (error) {
-            toast.error(error.message || "Failed to update organization");
-        } else {
-            toast.success("Organization updated");
+        try {
+            let logoUrl: string | undefined = logoPreview ?? undefined;
+
+            // Upload logo to Supabase; store only the CDN URL
             if (pendingLogo) {
-                setLogoPreview(pendingLogo);
-                setPendingLogo(null);
+                const blob = await fetch(pendingLogo).then((r) => r.blob());
+                const fd = new FormData();
+                fd.append("file", blob, "logo.webp");
+                const { publicUrl } = await uploadOrgAvatarAction(org.id, fd);
+                logoUrl = publicUrl;
             }
+
+            const { error } = await authClient.organization.update({
+                data: { name, slug, logo: logoUrl },
+                organizationId: org.id,
+            });
+            if (error) {
+                toast.error(error.message || "Failed to update organization");
+            } else {
+                toast.success("Organization updated");
+                if (pendingLogo) {
+                    setLogoPreview(logoUrl ?? null);
+                    setPendingLogo(null);
+                }
+            }
+        } catch {
+            toast.error("Failed to upload logo");
+        } finally {
+            setLoading(false);
         }
     };
 

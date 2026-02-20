@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { uploadUserAvatarAction } from "@/app/(dashboard)/dashboard/_actions/upload-avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,16 +55,32 @@ export function ProfileStep({ onNext }: { onNext: () => void }) {
             return;
         }
         setLoading(true);
-        const { error } = await authClient.updateUser({
-            name: name.trim(),
-            image: avatarDataUrl ?? undefined,
-        });
-        setLoading(false);
-        if (error) {
-            toast.error(error.message || "Failed to save profile");
-            return;
+        try {
+            let imageUrl: string | undefined = undefined;
+
+            // Upload avatar to Supabase; store only the CDN URL
+            if (avatarDataUrl && session?.user?.id) {
+                const blob = await fetch(avatarDataUrl).then((r) => r.blob());
+                const fd = new FormData();
+                fd.append("file", blob, "avatar.webp");
+                const { publicUrl } = await uploadUserAvatarAction(session.user.id, fd);
+                imageUrl = publicUrl;
+            }
+
+            const { error } = await authClient.updateUser({
+                name: name.trim(),
+                image: imageUrl,
+            });
+            if (error) {
+                toast.error(error.message || "Failed to save profile");
+                return;
+            }
+            onNext();
+        } catch {
+            toast.error("Failed to upload avatar");
+        } finally {
+            setLoading(false);
         }
-        onNext();
     };
 
     return (
