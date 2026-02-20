@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
+import { uploadUserAvatarAction } from "@/app/(dashboard)/dashboard/_actions/upload-avatar";
 import {
     Card,
     CardContent,
@@ -86,19 +87,35 @@ function ProfileSection() {
 
     const handleUpdateProfile = async () => {
         setLoading(true);
-        const { error } = await authClient.updateUser({
-            name: currentName,
-            image: pendingCrop ?? avatarPreview ?? session?.user?.image ?? undefined,
-        });
-        setLoading(false);
-        if (error) {
-            toast.error(error.message || "Failed to update profile");
-        } else {
-            toast.success("Profile updated successfully");
-            if (pendingCrop) {
-                setAvatarPreview(pendingCrop);
-                setPendingCrop(null);
+        try {
+            let imageUrl = avatarPreview ?? session?.user?.image ?? undefined;
+
+            // Upload cropped avatar to Supabase; store only the CDN URL
+            if (pendingCrop && session?.user?.id) {
+                const blob = await fetch(pendingCrop).then((r) => r.blob());
+                const fd = new FormData();
+                fd.append("file", blob, "avatar.webp");
+                const { publicUrl } = await uploadUserAvatarAction(session.user.id, fd);
+                imageUrl = publicUrl;
             }
+
+            const { error } = await authClient.updateUser({
+                name: currentName,
+                image: imageUrl,
+            });
+            if (error) {
+                toast.error(error.message || "Failed to update profile");
+            } else {
+                toast.success("Profile updated successfully");
+                if (pendingCrop) {
+                    setAvatarPreview(imageUrl ?? null);
+                    setPendingCrop(null);
+                }
+            }
+        } catch {
+            toast.error("Failed to upload avatar");
+        } finally {
+            setLoading(false);
         }
     };
 
