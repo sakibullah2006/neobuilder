@@ -35,7 +35,6 @@ export const auth = betterAuth({
             }
         }
     },
-    baseURL: process.env.BETTER_AUTH_BASE_URL,
     plugins: [
         organization({
             ac: ac,
@@ -57,6 +56,8 @@ export const auth = betterAuth({
         }),
         admin(),
     ],
+    baseURL: process.env.BETTER_AUTH_BASE_URL,
+    secret: process.env.BETTER_AUTH_SECRET,
 });
 
 
