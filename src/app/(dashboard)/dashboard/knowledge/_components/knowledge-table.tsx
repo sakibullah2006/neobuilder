@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -95,6 +95,9 @@ export function KnowledgeTable({ botId, refreshKey }: KnowledgeTableProps) {
         return data;
     }, [botId]);
 
+    const fetchSourcesRef = useRef(fetchSources);
+    useEffect(() => { fetchSourcesRef.current = fetchSources; }, [fetchSources]);
+
     useEffect(() => {
         setLoading(true);
         fetchSources();
@@ -104,11 +107,11 @@ export function KnowledgeTable({ botId, refreshKey }: KnowledgeTableProps) {
         const hasProcessing = sources.some((s) => s.status === "processing");
         if (!hasProcessing) return;
         const id = setInterval(async () => {
-            const updated = await fetchSources();
+            const updated = await fetchSourcesRef.current();
             if (!updated.some((s) => s.status === "processing")) clearInterval(id);
         }, 5000);
         return () => clearInterval(id);
-    }, [sources, fetchSources]);
+    }, [sources]); // fetchSources intentionally excluded — using ref to avoid double-fetch
 
     const handleDelete = async (sourceId: string) => {
         setDeletingId(sourceId);

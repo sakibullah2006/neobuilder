@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
 import {
@@ -222,22 +222,27 @@ export default function AssistantPage() {
     const [chatbots, setChatbots] = useState<Chatbot[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
+    // Track which org we last fetched for so auth-hook re-renders don't re-fire
+    const loadedForOrg = useRef<string | null>(null);
 
     const loadBots = useCallback(async (orgId: string) => {
         setLoading(true);
         try {
             const bots = await getChatbotsForOrg(orgId);
             setChatbots(bots);
-            if (bots.length > 0 && !selectedId) setSelectedId(bots[0].id);
+            setSelectedId((prev) => (prev === null && bots.length > 0 ? bots[0].id : prev));
         } catch {
             toast.error("Failed to load assistants");
         } finally {
             setLoading(false);
         }
-    }, [selectedId]);
+    }, []);
 
     useEffect(() => {
-        if (activeOrg?.id) loadBots(activeOrg.id);
+        if (!activeOrg?.id) return;
+        if (loadedForOrg.current === activeOrg.id) return; // already fetched
+        loadedForOrg.current = activeOrg.id;
+        loadBots(activeOrg.id);
     }, [activeOrg?.id, loadBots]);
 
     const selectedBot = chatbots.find((b) => b.id === selectedId) ?? null;

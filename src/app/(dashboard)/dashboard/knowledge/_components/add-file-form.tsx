@@ -9,13 +9,13 @@ import { cn } from "@/lib/utils";
 import { uploadAndGetSignedUrl } from "../_actions/knowledge";
 
 const ACCEPTED_MIME_TYPES = [
-    "application/pdf",
-    "application/msword",
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    "text/plain",
-    "text/markdown",
+    // "application/msword",
+    // "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    // "text/plain",
+    // "text/markdown",
+    "application/pdf"
 ];
-const ACCEPTED_EXTENSIONS = ".pdf,.doc,.docx,.txt,.md,.mdx";
+const ACCEPTED_EXTENSIONS = ".pdf";
 const MAX_SIZE_MB = 20;
 
 interface AddFileFormProps {
@@ -37,9 +37,9 @@ export function AddFileForm({ botId, orgId, onSuccess }: AddFileFormProps) {
         }
         if (
             !ACCEPTED_MIME_TYPES.includes(file.type) &&
-            !file.name.match(/\.(pdf|doc|docx|txt|md|mdx)$/i)
+            !file.name.match(/\.pdf$/i)
         ) {
-            toast.error("Unsupported file type");
+            toast.error("Only PDF files are supported");
             return false;
         }
         return true;
@@ -124,7 +124,7 @@ export function AddFileForm({ botId, orgId, onSuccess }: AddFileFormProps) {
                     <p className="text-sm font-medium">
                         Drop file here or <span className="text-primary underline underline-offset-2">browse</span>
                     </p>
-                    <p className="text-xs text-muted-foreground">PDF, DOC, DOCX, TXT, MD — max {MAX_SIZE_MB} MB</p>
+                    <p className="text-xs text-muted-foreground">PDF only — max {MAX_SIZE_MB} MB</p>
                 </div>
                 <input
                     ref={inputRef}
