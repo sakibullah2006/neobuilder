@@ -1,7 +1,7 @@
 import { pgTable, text, timestamp, boolean, uuid, vector, jsonb, index, pgEnum } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 // Import the 'user' table from your auth schema to link foreign keys
-import { user } from "./auth-schema";
+import { user, organization } from "./auth-schema";
 
 // --- ENUMS ---
 // Enforce strict status types for data integrity
@@ -14,7 +14,11 @@ export const chatbots = pgTable("chatbots", {
     userId: text("user_id")
         .notNull()
         .references(() => user.id, { onDelete: "cascade" }), // If User is deleted, Bot is deleted
+    organizationId: text("organization_id")
+        .notNull()
+        .references(() => organization.id, { onDelete: "cascade" }), // If Organization is deleted, Bot is deleted
     name: text("name").notNull(),
+
 
     // Customization
     systemPrompt: text("system_prompt").default("You are a helpful assistant."),
@@ -29,7 +33,8 @@ export const chatbots = pgTable("chatbots", {
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
 }, (table) => [
     // Index for faster queries when listing a user's bots
-    index("chatbots_user_idx").on(table.userId)
+    index("chatbots_user_idx").on(table.userId),
+    index("chatbots_org_idx").on(table.organizationId),
 ]);
 
 // --- 2. KNOWLEDGE SOURCES (The Files/Links) ---
@@ -117,8 +122,12 @@ export const chatbotsRelations = relations(chatbots, ({ one, many }) => ({
         fields: [chatbots.userId],
         references: [user.id],
     }),
+    organization: one(organization, {
+        fields: [chatbots.organizationId],
+        references: [organization.id],
+    }),
     sources: many(knowledgeSources),
-    knowledge: many(botKnowledge),
+    knowledge: many(botKnowledge, { relationName: "chatbot_knowledge" }),
     conversations: many(conversations),
 }));
 
@@ -127,7 +136,20 @@ export const knowledgeSourcesRelations = relations(knowledgeSources, ({ one, man
         fields: [knowledgeSources.botId],
         references: [chatbots.id],
     }),
-    chunks: many(botKnowledge),
+    chunks: many(botKnowledge, { relationName: "source_chunks" }),
+}));
+
+export const botKnowledgeRelations = relations(botKnowledge, ({ one }) => ({
+    chatbot: one(chatbots, {
+        fields: [botKnowledge.botId],
+        references: [chatbots.id],
+        relationName: "chatbot_knowledge",
+    }),
+    source: one(knowledgeSources, {
+        fields: [botKnowledge.sourceId],
+        references: [knowledgeSources.id],
+        relationName: "source_chunks",
+    }),
 }));
 
 export const conversationsRelations = relations(conversations, ({ one, many }) => ({

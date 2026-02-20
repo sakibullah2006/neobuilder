@@ -43,6 +43,13 @@
       "when": 1771500981012,
       "tag": "0005_true_wild_child",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771596108868,
+      "tag": "0006_safe_black_crow",
+      "breakpoints": true
     }
   ]
 }
