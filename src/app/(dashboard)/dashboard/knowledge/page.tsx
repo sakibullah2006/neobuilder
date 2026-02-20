@@ -27,7 +27,7 @@ import { getChatbotsForOrg } from "./_actions/knowledge";
 type Chatbot = Awaited<ReturnType<typeof getChatbotsForOrg>>[number];
 
 export default function KnowledgePage() {
-    const { data: activeOrg } = authClient.useActiveOrganization();
+    const { data: activeOrg, isPending: orgPending } = authClient.useActiveOrganization();
 
     const [chatbots, setChatbots] = useState<Chatbot[]>([]);
     const [selectedBotId, setSelectedBotId] = useState<string>("");
@@ -50,11 +50,17 @@ export default function KnowledgePage() {
     }, []);
 
     useEffect(() => {
-        if (!activeOrg?.id) return;
+        // Auth hook is still fetching — wait for it
+        if (orgPending) return;
+        // Auth hook finished but no active org — stop spinner
+        if (!activeOrg?.id) {
+            setBotsLoading(false);
+            return;
+        }
         if (loadedForOrg.current === activeOrg.id) return; // already fetched
         loadedForOrg.current = activeOrg.id;
         loadChatbots(activeOrg.id);
-    }, [activeOrg?.id, loadChatbots]);
+    }, [activeOrg?.id, orgPending, loadChatbots]);
 
     const handleSourceAdded = () => setRefreshKey((k) => k + 1);
 
