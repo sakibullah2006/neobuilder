@@ -3,226 +3,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { toast } from "sonner";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Separator } from "@/components/ui/separator";
-import { Badge } from "@/components/ui/badge";
-import { Bot, Plus, Loader2, Settings2, Check } from "lucide-react";
-import { getChatbotsForOrg, createChatbot, updateChatbot } from "./_actions/assistant";
+import { Bot, Loader2 } from "lucide-react";
+import { getChatbotsForOrg } from "./_actions/assistant";
+import { CreateChatbotForm } from "./_components/create-chatbot-form";
+import { EditChatbotForm } from "./_components/edit-chatbot-form";
 
 type Chatbot = Awaited<ReturnType<typeof getChatbotsForOrg>>[number];
-
-// ─── Create form ─────────────────────────────────────────────────────────────
-
-function CreateChatbotForm({ onCreated }: { onCreated: (bot: Chatbot) => void }) {
-    const { data: session } = authClient.useSession();
-    const { data: activeOrg } = authClient.useActiveOrganization();
-    const [name, setName] = useState("");
-    const [systemPrompt, setSystemPrompt] = useState("You are a helpful assistant.");
-    const [welcomeMessage, setWelcomeMessage] = useState("Hi! How can I help you today?");
-    const [loading, setLoading] = useState(false);
-
-    const handleCreate = async () => {
-        if (!name.trim()) { toast.error("Name is required"); return; }
-        if (!session?.user?.id || !activeOrg?.id) { toast.error("Session not ready"); return; }
-        setLoading(true);
-        try {
-            const bot = await createChatbot({
-                userId: session.user.id,
-                organizationId: activeOrg.id,
-                name: name.trim(),
-                systemPrompt,
-                welcomeMessage,
-            });
-            toast.success(`"${bot.name}" created`);
-            onCreated(bot);
-        } catch (err: unknown) {
-            toast.error(err instanceof Error ? err.message : "Failed to create assistant");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Plus className="h-5 w-5" />
-                    Create Assistant
-                </CardTitle>
-                <CardDescription>
-                    Set up a new AI assistant for your organization.
-                </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="bot-name">Name <span className="text-destructive">*</span></Label>
-                    <Input
-                        id="bot-name"
-                        placeholder="e.g. Support Bot"
-                        value={name}
-                        onChange={(e) => setName(e.target.value)}
-                    />
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="bot-system-prompt">System Prompt</Label>
-                    <Textarea
-                        id="bot-system-prompt"
-                        rows={4}
-                        placeholder="You are a helpful assistant..."
-                        value={systemPrompt}
-                        onChange={(e) => setSystemPrompt(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        This defines the assistant's personality and behaviour.
-                    </p>
-                </div>
-                <div className="space-y-2">
-                    <Label htmlFor="bot-welcome">Welcome Message</Label>
-                    <Input
-                        id="bot-welcome"
-                        placeholder="Hi! How can I help you today?"
-                        value={welcomeMessage}
-                        onChange={(e: React.ChangeEvent<HTMLInputElement>) => setWelcomeMessage(e.target.value)}
-                    />
-                </div>
-                <Button onClick={handleCreate} disabled={loading}>
-                    {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Create Assistant
-                </Button>
-            </CardContent>
-        </Card>
-    );
-}
-
-// ─── Edit form ────────────────────────────────────────────────────────────────
-
-function EditChatbotForm({ bot, onUpdated }: { bot: Chatbot; onUpdated: (bot: Chatbot) => void }) {
-    const [name, setName] = useState(bot.name);
-    const [systemPrompt, setSystemPrompt] = useState(bot.systemPrompt ?? "");
-    const [welcomeMessage, setWelcomeMessage] = useState(bot.welcomeMessage ?? "");
-    const [brandColor, setBrandColor] = useState(bot.brandColor ?? "#000000");
-    const [calendlyLink, setCalendlyLink] = useState(bot.calendlyLink ?? "");
-    const [loading, setLoading] = useState(false);
-    const [saved, setSaved] = useState(false);
-
-    const handleSave = async () => {
-        setLoading(true);
-        try {
-            const updated = await updateChatbot(bot.id, {
-                name: name.trim() || bot.name,
-                systemPrompt,
-                welcomeMessage,
-                brandColor,
-                calendlyLink: calendlyLink || undefined,
-            });
-            toast.success("Settings saved");
-            setSaved(true);
-            setTimeout(() => setSaved(false), 2000);
-            onUpdated(updated);
-        } catch {
-            toast.error("Failed to save settings");
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    return (
-        <Card>
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <Settings2 className="h-5 w-5" />
-                    {bot.name}
-                    <Badge variant={bot.isActive ? "default" : "secondary"} className="ml-1 text-xs">
-                        {bot.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                </CardTitle>
-                <CardDescription>Configure your assistant's settings.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-                <div className="space-y-2">
-                    <Label htmlFor="edit-name">Name</Label>
-                    <Input id="edit-name" value={name} onChange={(e) => setName(e.target.value)} />
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="edit-system-prompt">System Prompt</Label>
-                    <Textarea
-                        id="edit-system-prompt"
-                        rows={5}
-                        value={systemPrompt}
-                        onChange={(e) => setSystemPrompt(e.target.value)}
-                    />
-                    <p className="text-xs text-muted-foreground">
-                        Defines the assistant's personality and instruction set.
-                    </p>
-                </div>
-
-                <div className="space-y-2">
-                    <Label htmlFor="edit-welcome">Welcome Message</Label>
-                    <Input id="edit-welcome" value={welcomeMessage} onChange={(e) => setWelcomeMessage(e.target.value)} />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-color">Brand Color</Label>
-                        <div className="flex gap-2 items-center">
-                            <input
-                                id="edit-color"
-                                type="color"
-                                value={brandColor}
-                                onChange={(e) => setBrandColor(e.target.value)}
-                                className="h-9 w-9 rounded border cursor-pointer bg-transparent p-0.5"
-                            />
-                            <Input
-                                value={brandColor}
-                                onChange={(e) => setBrandColor(e.target.value)}
-                                className="font-mono text-sm"
-                                placeholder="#000000"
-                            />
-                        </div>
-                    </div>
-                    <div className="space-y-2">
-                        <Label htmlFor="edit-calendly">Calendly Link <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                        <Input
-                            id="edit-calendly"
-                            placeholder="https://calendly.com/..."
-                            value={calendlyLink}
-                            onChange={(e) => setCalendlyLink(e.target.value)}
-                        />
-                    </div>
-                </div>
-
-                <Button onClick={handleSave} disabled={loading}>
-                    {loading ? (
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : saved ? (
-                        <Check className="mr-2 h-4 w-4" />
-                    ) : null}
-                    {saved ? "Saved!" : "Save Settings"}
-                </Button>
-            </CardContent>
-        </Card>
-    );
-}
-
-// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function AssistantPage() {
     const { data: activeOrg } = authClient.useActiveOrganization();
     const [chatbots, setChatbots] = useState<Chatbot[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    // Track which org we last fetched for so auth-hook re-renders don't re-fire
     const loadedForOrg = useRef<string | null>(null);
 
     const loadBots = useCallback(async (orgId: string) => {
@@ -240,7 +33,7 @@ export default function AssistantPage() {
 
     useEffect(() => {
         if (!activeOrg?.id) return;
-        if (loadedForOrg.current === activeOrg.id) return; // already fetched
+        if (loadedForOrg.current === activeOrg.id) return;
         loadedForOrg.current = activeOrg.id;
         loadBots(activeOrg.id);
     }, [activeOrg?.id, loadBots]);
