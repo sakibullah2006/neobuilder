@@ -27,6 +27,7 @@ function VerifyEmailContent() {
         }, {
             onSuccess: () => {
                 setStatus("success")
+                router.push("/onboarding")
             },
             onError: () => {
                 setStatus("error")
