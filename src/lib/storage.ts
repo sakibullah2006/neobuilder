@@ -1,4 +1,4 @@
-"use server";
+
 
 import { supabaseAdmin } from "./supabase";
 import type { SupabaseClient } from "@supabase/supabase-js";

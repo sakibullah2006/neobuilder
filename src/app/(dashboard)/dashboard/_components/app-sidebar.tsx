@@ -37,11 +37,11 @@ const data = {
             items: [
                 {
                     title: "Knowledge Base",
-                    url: "#",
+                    url: "/dashboard/knowledge",
                 },
                 {
                     title: "Assistant",
-                    url: "#",
+                    url: "/dashboard/assistant",
                 },
                 {
                     title: "Security",
