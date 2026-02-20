@@ -12,7 +12,7 @@ import { EditChatbotForm } from "./_components/edit-chatbot-form";
 type Chatbot = Awaited<ReturnType<typeof getChatbotsForOrg>>[number];
 
 export default function AssistantPage() {
-    const { data: activeOrg } = authClient.useActiveOrganization();
+    const { data: activeOrg, isPending: orgPending } = authClient.useActiveOrganization();
     const [chatbots, setChatbots] = useState<Chatbot[]>([]);
     const [selectedId, setSelectedId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -32,11 +32,17 @@ export default function AssistantPage() {
     }, []);
 
     useEffect(() => {
-        if (!activeOrg?.id) return;
+        // Auth hook is still fetching — wait for it
+        if (orgPending) return;
+        // Auth hook finished but no active org — stop spinner
+        if (!activeOrg?.id) {
+            setLoading(false);
+            return;
+        }
         if (loadedForOrg.current === activeOrg.id) return;
         loadedForOrg.current = activeOrg.id;
         loadBots(activeOrg.id);
-    }, [activeOrg?.id, loadBots]);
+    }, [activeOrg?.id, orgPending, loadBots]);
 
     const selectedBot = chatbots.find((b) => b.id === selectedId) ?? null;
 
