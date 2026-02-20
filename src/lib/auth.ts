@@ -33,7 +33,13 @@ export const auth = betterAuth({
                 defaultValue: "user",
                 input: false
             }
-        }
+        },
+        changeEmail: {
+            enabled: true,
+        },
+        deleteUser: {
+            enabled: true,
+        },
     },
     plugins: [
         organization({

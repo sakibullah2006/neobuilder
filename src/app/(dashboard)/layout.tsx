@@ -2,6 +2,9 @@ import { ReactNode } from 'react';
 import { auth } from '@/lib/auth';
 import { redirect } from 'next/navigation';
 import { headers } from 'next/headers';
+import { db } from '@/db';
+import { member } from '@/db/schema/auth-schema';
+import { eq } from 'drizzle-orm';
 import { AppSidebar } from './dashboard/_components/app-sidebar';
 import {
     SidebarInset,
@@ -27,6 +30,15 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
         headers: await headers()
     });
     if (!session) redirect('/login');
+
+    // Redirect to onboarding if the user has no org membership yet
+    const memberships = await db
+        .select({ id: member.id })
+        .from(member)
+        .where(eq(member.userId, session.user.id))
+        .limit(1);
+
+    if (memberships.length === 0) redirect('/onboarding');
 
     return (
         <SidebarProvider>

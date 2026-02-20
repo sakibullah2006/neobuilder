@@ -75,11 +75,11 @@ const data = {
             items: [
                 {
                     title: "Account Settings",
-                    url: "#",
+                    url: "/dashboard/account",
                 },
                 {
-                    title: "Subscriptions",
-                    url: "#",
+                    title: "Organization",
+                    url: "/dashboard/organization",
                 }
             ]
         }
